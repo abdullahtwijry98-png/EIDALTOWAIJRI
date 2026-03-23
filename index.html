@@ -1,34 +1,53 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Clock</title>
     <style>
-        body { font-family: Arial, sans-serif; }
-        .clock-container { display: flex; justify-content: space-around; margin-top: 20px; }
-        .clock { font-size: 24px; }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: black;
+            color: white;
+            font-size: 48px;
+            font-family: Arial, sans-serif;
+        }
+        .clock {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
-    <h1>Digital Clock</h1>
-    <div class="clock-container">
-        <div class="clock" id="clock-utc">UTC: </div>
-        <div class="clock" id="clock-est">EST: </div>
-        <div class="clock" id="clock-gmt">GMT: </div>
+    <div class="clock">
+        <div id="time"></div>
+        <div>
+            <div id="utc"></div>
+            <div id="est"></div>
+            <div id="gmt"></div>
+            <div id="ist"></div>
+            <div id="jst"></div>
+            <div id="pst"></div>
+            <div id="aest"></div>
+        </div>
     </div>
     <script>
-        function updateClocks() {
+        function updateTime() {
+            const utcOffset = new Date().getTimezoneOffset();
             const now = new Date();
-            const utc = now.toUTCString().split(' ')[4]; // get UTC time
-            document.getElementById('clock-utc').innerText = 'UTC: ' + utc;
-
-            const est = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-            document.getElementById('clock-est').innerText = 'EST: ' + est.toTimeString().split(' ')[0];
-
-            const gmt = new Date(now.toLocaleString('en-GB', { timeZone: 'Europe/London' }));
-            document.getElementById('clock-gmt').innerText = 'GMT: ' + gmt.toTimeString().split(' ')[0];
+            document.getElementById('utc').innerText = 'UTC Time: ' + new Date(now.getTime() + utcOffset * 60000).toISOString().substr(11, 8);
+            document.getElementById('est').innerText = 'EST Time: ' + new Date(now.getTime() - 5 * 60 * 60 * 1000).toISOString().substr(11, 8);
+            document.getElementById('gmt').innerText = 'GMT Time: ' + new Date(now.getTime()).toISOString().substr(11, 8);
+            document.getElementById('ist').innerText = 'IST Time: ' + new Date(now.getTime() + 5.5 * 60 * 60 * 1000).toISOString().substr(11, 8);
+            document.getElementById('jst').innerText = 'JST Time: ' + new Date(now.getTime() + 9 * 60 * 60 * 1000).toISOString().substr(11, 8);
+            document.getElementById('pst').innerText = 'PST Time: ' + new Date(now.getTime() - 8 * 60 * 60 * 1000).toISOString().substr(11, 8);
+            document.getElementById('aest').innerText = 'AEST Time: ' + new Date(now.getTime() + 10 * 60 * 60 * 1000).toISOString().substr(11, 8);
         }
-        setInterval(updateClocks, 1000);
-        updateClocks();
+        setInterval(updateTime, 1000);
+        updateTime();
     </script>
 </body>
 </html>

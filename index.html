@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>سحب جوائز عيد التويجري 1447</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+  <style>
+    :root {
+      --vh: 1vh;
+      --gold: #d4af37;
+      --gold-light: #fde047;
+      --emerald-deep: #011c15;
+      --emerald-dark: #022c1f;
+      --emerald-mid: #064e3b;
+      --emerald-bright: #065f46;
+      --glass-bg: rgba(6, 78, 59, 0.25);
+      --glass-border: rgba(212, 175, 55, 0.25);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      font-family: 'Cairo', sans-serif;
+      background: var(--emerald-deep);
+      color: #f0fdf4;
+      overflow: hidden;
+    }
+
+    /* Mobile: allow scroll */
+    @media (max-width: 1023px) {
+      html, body { overflow: auto; }
+    }
+
+    .app-container {
+      height: calc(var(--vh, 1vh) * 100);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    @media (max-width: 1023px) {
+      .app-container { height: auto; overflow: visible; min-height: calc(var(--vh, 1vh) * 100); }
+    }
+
+    /* Animated BG */
+    .bg-pattern {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(6,78,59,0.5) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 90%, rgba(6,78,59,0.4) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 40% at 50% 50%, rgba(212,175,55,0.04) 0%, transparent 70%);
+      animation: bgPulse 8s ease-in-out infinite alternate;
+    }
+    @keyframes bgPulse {
+      from { opacity: 0.8; }
+      to   { opacity: 1; }
+    }
+
+    /* Stars overlay */
+    .stars {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+      background-image:
+        radial-gradient(1px 1px at 15% 20%, rgba(212,175,55,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 35% 60%, rgba(212,175,55,0.3) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 55% 30%, rgba(212,175,55,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 75% 75%, rgba(212,175,55,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 15%, rgba(212,175,55,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 10% 85%, rgba(212,175,55,0.4) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 60% 90%, rgba(212,175,55,0.3) 0%, transparent 100%),
+        radial-gradient(1px 1px at 28% 45%, rgba(212,175,55,0.4) 0%, transparent 100%),
+        radial-gradient(1px 1px at 82% 40%, rgba(212,175,55,0.3) 0%, transparent 100%),
+        radial-gradient(1.5px 1.5px at 45% 10%, rgba(212,175,55,0.5) 0%, transparent 100%);
+      animation: twinkle 4s ease-in-out infinite alternate;
+    }
+    @keyframes twinkle {
+      from { opacity: 0.6; }
+      to   { opacity: 1; }
+    }
+
+    /* Glass panel */
+    .glass {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* Gold gradient text */
+    .gold-text {
+      background: linear-gradient(135deg, #d4af37 0%, #fde047 40%, #d4af37 70%, #b8960c 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Header */
+    .header {
+      position: relative; z-index: 10;
+      background: linear-gradient(135deg, #011c15 0%, #022c1f 50%, #011c15 100%);
+      border-bottom: 2px solid rgba(212,175,55,0.4);
+      box-shadow: 0 4px 32px rgba(0,0,0,0.5), 0 1px 0 rgba(212,175,55,0.2) inset;
+    }
+
+    /* Name display */
+    .name-display {
+      font-size: clamp(2rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 1.2;
+      text-align: center;
+      min-height: 6rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: filter 0.3s ease, transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .name-display.blurred { filter: blur(6px); transform: scale(0.97); }
+    .name-display.winner  { filter: none; transform: scale(1.06); }
+
+    /* Draw button */
+    .draw-btn {
+      background: linear-gradient(135deg, #d4af37 0%, #fde047 50%, #d4af37 100%);
+      color: #011c15;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      border: none;
+      cursor: pointer;
+      border-radius: 9999px;
+      padding: 0.85rem 2.5rem;
+      box-shadow: 0 0 0 0 rgba(212,175,55,0.6), 0 4px 20px rgba(212,175,55,0.3);
+      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .draw-btn:not(:disabled):hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 30px rgba(212,175,55,0.6), 0 6px 24px rgba(212,175,55,0.4);
+    }
+    .draw-btn:not(:disabled):active { transform: scale(0.97); }
+    .draw-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .draw-btn::after {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.25) 50%, transparent 60%);
+      transform: translateX(-100%);
+      transition: transform 0.6s;
+    }
+    .draw-btn:not(:disabled):hover::after { transform: translateX(100%); }
+
+    /* Winner card pop */
+    @keyframes winnerPop {
+      0%   { transform: scale(0.8); opacity: 0; }
+      60%  { transform: scale(1.08); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .winner-card-new {
+      animation: winnerPop 0.5s cubic-bezier(0.34,1.56,0.64,1) forwards;
+    }
+
+    /* Rank badges */
+    .rank-badge {
+      width: 2rem; height: 2rem; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 0.85rem; flex-shrink: 0;
+    }
+    .rank-1 { background: linear-gradient(135deg, #d4af37, #fde047); color: #011c15; }
+    .rank-2 { background: linear-gradient(135deg, #9ca3af, #d1d5db); color: #011c15; }
+    .rank-3 { background: linear-gradient(135deg, #b45309, #d97706); color: #fff; }
+    .rank-n { background: rgba(6,78,59,0.6); color: #d4af37; border: 1px solid rgba(212,175,55,0.3); }
+
+    /* Ticker */
+    .ticker-wrap {
+      background: linear-gradient(90deg, #011c15, #022c1f, #011c15);
+      border-top: 1px solid rgba(212,175,55,0.3);
+      overflow: hidden;
+      position: relative; z-index: 10;
+    }
+    .ticker-content {
+      display: inline-flex;
+      white-space: nowrap;
+      animation: ticker 30s linear infinite;
+      gap: 5rem;
+    }
+    @keyframes ticker {
+      from { transform: translateX(0); }
+      to   { transform: translateX(-50%); }
+    }
+
+    /* QA Cards */
+    .qa-card {
+      background: rgba(6,78,59,0.3);
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 0.75rem;
+      padding: 0.75rem 1rem;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .qa-card:hover {
+      border-color: rgba(212,175,55,0.5);
+      background: rgba(6,78,59,0.5);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(1,28,21,0.5); }
+    ::-webkit-scrollbar-thumb { background: rgba(212,175,55,0.4); border-radius: 9999px; }
+
+    /* Loading overlay */
+    #loadingOverlay {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--emerald-deep);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      transition: opacity 0.5s ease;
+    }
+    #loadingOverlay.hidden-overlay {
+      opacity: 0; pointer-events: none;
+    }
+
+    .spinner {
+      width: 56px; height: 56px;
+      border: 3px solid rgba(212,175,55,0.2);
+      border-top-color: #d4af37;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Glow line */
+    .glow-line {
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #d4af37, transparent);
+      box-shadow: 0 0 12px rgba(212,175,55,0.6);
+    }
+
+    /* ID badge */
+    .id-badge {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      background: rgba(212,175,55,0.12);
+      border: 1px solid rgba(212,175,55,0.3);
+      border-radius: 9999px;
+      padding: 0.2rem 0.8rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #d4af37;
+    }
+
+    /* Pulse animation for eligible count */
+    @keyframes pulse-gold {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(212,175,55,0.4); }
+      50% { box-shadow: 0 0 0 8px rgba(212,175,55,0); }
+    }
+    .pulse-gold { animation: pulse-gold 2s ease-in-out infinite; }
+
+    /* Grid layout for desktop */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 0;
+      flex: 1;
+      overflow: hidden;
+    }
+    @media (max-width: 1023px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+        overflow: visible;
+        flex: none;
+      }
+    }
+
+    .left-panel {
+      overflow-y: auto;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    @media (max-width: 1023px) {
+      .left-panel { overflow: visible; }
+    }
+
+    .right-panel {
+      overflow-y: auto;
+      border-right: 1px solid rgba(212,175,55,0.2);
+      background: rgba(1,28,21,0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    @media (max-width: 1023px) {
+      .right-panel {
+        overflow: visible;
+        border-right: none;
+        border-top: 1px solid rgba(212,175,55,0.2);
+      }
+    }
+
+    /* Section headers */
+    .section-header {
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #d4af37;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem 1rem 0.5rem;
+      border-bottom: 1px solid rgba(212,175,55,0.12);
+    }
+
+    .winners-list-container {
+      overflow-y: auto;
+      flex: 1;
+      padding: 0.5rem;
+      max-height: 340px;
+    }
+    @media (max-width: 1023px) {
+      .winners-list-container { max-height: 280px; }
+    }
+
+    /* Error message */
+    .error-box {
+      background: rgba(127,29,29,0.5);
+      border: 1px solid rgba(239,68,68,0.4);
+      border-radius: 0.75rem;
+      padding: 1rem;
+      color: #fca5a5;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Loading Overlay -->
+<div id="loadingOverlay">
+  <div style="text-align:center;">
+    <div style="font-size:3rem; margin-bottom:1rem;">🎊</div>
+    <h2 class="gold-text" style="font-size:1.6rem; font-weight:800; margin-bottom:0.5rem;">سحب جوائز عيد التويجري 1447</h2>
+    <p style="color:rgba(240,253,244,0.6); margin-bottom:1.5rem; font-size:0.9rem;">جارٍ تحميل بيانات المشاركين...</p>
+    <div class="spinner" style="margin: 0 auto;"></div>
+  </div>
+</div>
+
+<!-- Background Effects -->
+<div class="bg-pattern"></div>
+<div class="stars"></div>
+
+<!-- Main App Container -->
+<div class="app-container" style="position:relative; z-index:1;">
+
+  <!-- HEADER -->
+  <header class="header" style="padding: 0.6rem 1.2rem;">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.4rem;">
+      <div style="display:flex; align-items:center; gap:0.8rem;">
+        <div style="font-size:1.8rem;">🏆</div>
+        <div>
+          <h1 class="gold-text" style="font-size:clamp(1rem, 3vw, 1.5rem); font-weight:900; line-height:1.1;">سحب جوائز عيد التويجري 1447</h1>
+          <p style="font-size:clamp(0.55rem, 1.5vw, 0.72rem); color:rgba(240,253,244,0.55); margin-top:0.1rem; font-weight:400;">
+            ✅ متصل بقاعدة البيانات — حصري لأصحاب الإجابات الصحيحة بالكامل
+          </p>
+        </div>
+      </div>
+      <div style="text-align:left; direction:ltr;">
+        <div id="clockTime" style="font-size:clamp(1rem, 2.5vw, 1.4rem); font-weight:800; color:#d4af37; letter-spacing:0.05em; line-height:1;">00:00:00</div>
+        <div id="clockDate" style="font-size:clamp(0.55rem, 1.5vw, 0.7rem); color:rgba(240,253,244,0.5); margin-top:0.1rem;"></div>
+      </div>
+    </div>
+  </header>
+  <div class="glow-line"></div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- LEFT PANEL: Draw Arena + Q&A -->
+    <div class="left-panel">
+
+      <!-- Draw Arena -->
+      <div class="glass" style="border-radius:1.2rem; padding:1.5rem; display:flex; flex-direction:column; align-items:center; gap:1rem;">
+
+        <!-- Name Display -->
+        <div style="width:100%; min-height:7rem; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.5rem;">
+          <div id="nameDisplay" class="name-display gold-text" style="width:100%; padding:0 0.5rem;">
+            ابدأ السحب
+          </div>
+          <div id="idBadge" class="id-badge" style="display:none;">
+            <i data-lucide="hash" style="width:14px;height:14px;"></i>
+            <span id="idNumber">0</span>
+          </div>
+        </div>
+
+        <!-- Main Draw Button -->
+        <button id="drawBtn" class="draw-btn" style="min-width:200px; display:flex; align-items:center; justify-content:center; gap:0.5rem;">
+          <!-- State icons: only toggle hidden class -->
+          <span id="iconPlay" style="display:inline-flex; align-items:center;"><i data-lucide="play-circle" style="width:20px;height:20px;"></i></span>
+          <span id="iconLoader" class="hidden" style="display:none; align-items:center;"><i data-lucide="loader-2" style="width:20px;height:20px;" id="loaderIcon"></i></span>
+          <span id="iconCheck" class="hidden" style="display:none; align-items:center;"><i data-lucide="check-circle" style="width:20px;height:20px;"></i></span>
+          <span id="btnLabel">سحب فائز جديد</span>
+        </button>
+
+        <p id="statusMsg" style="font-size:0.8rem; color:rgba(240,253,244,0.45); text-align:center; min-height:1rem;"></p>
+      </div>
+
+      <!-- Correct Answers Section -->
+      <div class="glass" style="border-radius:1.2rem; padding:1.2rem;">
+        <div style="display:flex; align-items:center; gap:0.6rem; margin-bottom:1rem;">
+          <i data-lucide="check-circle-2" style="width:20px;height:20px;color:#d4af37;"></i>
+          <h3 style="font-weight:800; font-size:1rem; color:#d4af37;">الإجابات الصحيحة للمسابقة</h3>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:0.6rem;">
+          <div class="qa-card">
+            <p style="font-size:0.7rem; color:rgba(240,253,244,0.5); margin-bottom:0.2rem;">1. من هو أول حفيد للجد عبدالله</p>
+            <p style="font-weight:700; color:#fde047; font-size:0.95rem;">سميه</p>
+          </div>
+          <div class="qa-card">
+            <p style="font-size:0.7rem; color:rgba(240,253,244,0.5); margin-bottom:0.2rem;">2. ما اسم أم جدنا عبدالله</p>
+            <p style="font-weight:700; color:#fde047; font-size:0.95rem;">فاطمة</p>
+          </div>
+          <div class="qa-card">
+            <p style="font-size:0.7rem; color:rgba(240,253,244,0.5); margin-bottom:0.2rem;">3. كم عدد إخوان جدنا عبدالله</p>
+            <p style="font-weight:700; color:#fde047; font-size:0.95rem;">2</p>
+          </div>
+          <div class="qa-card">
+            <p style="font-size:0.7rem; color:rgba(240,253,244,0.5); margin-bottom:0.2rem;">4. كم عدد الأحفاد المسميين على جدنا عبدالله</p>
+            <p style="font-weight:700; color:#fde047; font-size:0.95rem;">4</p>
+          </div>
+          <div class="qa-card">
+            <p style="font-size:0.7rem; color:rgba(240,253,244,0.5); margin-bottom:0.2rem;">5. ما اسم جد جدنا عبدالله</p>
+            <p style="font-weight:700; color:#fde047; font-size:0.95rem;">عثمان</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /left-panel -->
+
+    <!-- RIGHT PANEL: Stats + Winners -->
+    <div class="right-panel">
+
+      <!-- Stats -->
+      <div class="section-header">
+        <i data-lucide="bar-chart-2" style="width:14px;height:14px;"></i>
+        الإحصائيات
+      </div>
+      <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:0; border-bottom:1px solid rgba(212,175,55,0.12);">
+        <div style="padding:0.9rem 0.6rem; text-align:center; border-left:1px solid rgba(212,175,55,0.12);">
+          <div id="statTotal" style="font-size:1.5rem; font-weight:900; color:#d4af37;">—</div>
+          <div style="font-size:0.6rem; color:rgba(240,253,244,0.5); margin-top:0.1rem; font-weight:600;">إجمالي المشاركات</div>
+        </div>
+        <div style="padding:0.9rem 0.6rem; text-align:center; border-left:1px solid rgba(212,175,55,0.12);">
+          <div id="statEligible" class="pulse-gold" style="font-size:1.5rem; font-weight:900; color:#4ade80; border-radius:50%; width:2.2rem;height:2.2rem; display:flex;align-items:center;justify-content:center; margin:0 auto;">—</div>
+          <div style="font-size:0.6rem; color:rgba(240,253,244,0.5); margin-top:0.2rem; font-weight:600;">المؤهلين (50)</div>
+        </div>
+        <div style="padding:0.9rem 0.6rem; text-align:center;">
+          <div id="statWinners" style="font-size:1.5rem; font-weight:900; color:#fde047;">0</div>
+          <div style="font-size:0.6rem; color:rgba(240,253,244,0.5); margin-top:0.1rem; font-weight:600;">الفائزين</div>
+        </div>
+      </div>
+
+      <!-- Remaining pool indicator -->
+      <div style="padding:0.6rem 1rem; border-bottom:1px solid rgba(212,175,55,0.08); display:flex; align-items:center; justify-content:space-between;">
+        <span style="font-size:0.72rem; color:rgba(240,253,244,0.45);">المتبقون في السحب:</span>
+        <span id="statRemaining" style="font-size:0.85rem; font-weight:700; color:#d4af37;">—</span>
+      </div>
+
+      <!-- Winners List -->
+      <div class="section-header">
+        <i data-lucide="trophy" style="width:14px;height:14px;"></i>
+        قائمة الفائزين
+      </div>
+      <div class="winners-list-container" id="winnersList">
+        <div style="text-align:center; color:rgba(240,253,244,0.3); font-size:0.8rem; padding:2rem 0;">
+          لا يوجد فائزون بعد
+        </div>
+      </div>
+
+      <!-- Error container in right panel -->
+      <div id="errorContainer" style="padding:0.8rem; display:none;"></div>
+
+    </div><!-- /right-panel -->
+  </div><!-- /main-grid -->
+
+  <!-- TICKER -->
+  <div class="ticker-wrap" style="padding: 0.4rem 0;">
+    <div class="ticker-content" id="tickerContent">
+      <span style="color:rgba(240,253,244,0.4); font-size:0.8rem;">
+        <i data-lucide="star" style="width:12px;height:12px;display:inline;"></i>
+        &nbsp;في انتظار أول فائز...
+        &nbsp;&nbsp;&nbsp;
+        سحب جوائز عيد التويجري 1447
+        &nbsp;&nbsp;&nbsp;
+        بالتوفيق للجميع 🎉
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        في انتظار أول فائز...
+        &nbsp;&nbsp;&nbsp;
+        سحب جوائز عيد التويجري 1447
+        &nbsp;&nbsp;&nbsp;
+        بالتوفيق للجميع 🎉
+      </span>
+    </div>
+  </div>
+
+</div><!-- /app-container -->
+
+<script>
+// ─── VH Fix for iOS Safari ───────────────────────────────────────────────────
+function setVH() {
+  document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+}
+setVH();
+window.addEventListener('resize', setVH);
+
+// ─── Mobile Detection ─────────────────────────────────────────────────────────
+function isMobileView() {
+  return window.innerWidth < 768;
+}
+
+// ─── Clock ────────────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const timeEl = document.getElementById('clockTime');
+  const dateEl = document.getElementById('clockDate');
+  if (timeEl) {
+    timeEl.textContent = now.toLocaleTimeString('ar-SA', { hour12: false });
+  }
+  if (dateEl) {
+    dateEl.textContent = now.toLocaleDateString('ar-SA', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+  }
+}
+updateClock();
+setInterval(updateClock, 1000);
+
+// ─── State ────────────────────────────────────────────────────────────────────
+let allParticipants  = [];   // all eligible (score === 50)
+let totalRows        = 0;
+let availablePool    = [];   // not-yet-drawn eligible participants
+let winners          = [];   // drawn winners in order
+let isDrawing        = false;
+let animationInterval = null;
+
+// ─── DOM Refs ─────────────────────────────────────────────────────────────────
+const drawBtn         = document.getElementById('drawBtn');
+const nameDisplay     = document.getElementById('nameDisplay');
+const idBadge         = document.getElementById('idBadge');
+const idNumber        = document.getElementById('idNumber');
+const btnLabel        = document.getElementById('btnLabel');
+const statusMsg       = document.getElementById('statusMsg');
+const winnersList     = document.getElementById('winnersList');
+const statTotal       = document.getElementById('statTotal');
+const statEligible    = document.getElementById('statEligible');
+const statWinners     = document.getElementById('statWinners');
+const statRemaining   = document.getElementById('statRemaining');
+const tickerContent   = document.getElementById('tickerContent');
+const errorContainer  = document.getElementById('errorContainer');
+const loadingOverlay  = document.getElementById('loadingOverlay');
+
+// Loader spin CSS
+const loaderIconEl = document.getElementById('loaderIcon');
+if (loaderIconEl) {
+  loaderIconEl.style.animation = 'spin 0.8s linear infinite';
+}
+
+// ─── Button State Helper ──────────────────────────────────────────────────────
+// CRITICAL: Never call lucide.createIcons() during draw – pre-rendered icons only.
+function setButtonState(state) {
+  // state: 'idle' | 'drawing' | 'done'
+  const play   = document.getElementById('iconPlay');
+  const loader = document.getElementById('iconLoader');
+  const check  = document.getElementById('iconCheck');
+
+  // Hide all
+  [play, loader, check].forEach(el => {
+    if (el) { el.style.display = 'none'; }
+  });
+
+  if (state === 'idle') {
+    if (play)   { play.style.display   = 'inline-flex'; }
+    btnLabel.textContent   = 'سحب فائز جديد';
+    drawBtn.disabled       = false;
+  } else if (state === 'drawing') {
+    if (loader) { loader.style.display = 'inline-flex'; }
+    btnLabel.textContent   = 'جاري الاختيار...';
+    drawBtn.disabled       = true;
+  } else if (state === 'done') {
+    if (check)  { check.style.display  = 'inline-flex'; }
+    btnLabel.textContent   = 'سحب فائز آخر';
+    drawBtn.disabled       = false;
+  }
+}
+
+// ─── Score Parser ─────────────────────────────────────────────────────────────
+function parseScore(raw) {
+  if (raw === null || raw === undefined) return null;
+  const str = String(raw).trim();
+  // Format: "X / Y"
+  const slashMatch = str.match(/^(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)$/);
+  if (slashMatch) {
+    return parseFloat(slashMatch[1]);
+  }
+  // Format: plain number
+  const plain = parseFloat(str);
+  if (!isNaN(plain)) return plain;
+  return null;
+}
+
+// ─── Show Error ────────────────────────────────────────────────────────────────
+function showError(msg) {
+  errorContainer.style.display = 'block';
+  errorContainer.innerHTML = `<div class="error-box">⚠️ ${msg}</div>`;
+  statusMsg.textContent = '⚠️ حدث خطأ في تحميل البيانات';
+}
+
+// ─── Fetch & Parse Google Sheets via JSONP (avoids CORS) ─────────────────────
+const SHEET_ID = '1S_kUuyduVjyI_8h2IF5sgSDUlLVPFtMxbsMIFnVanHw';
+
+function fetchDataJSONP() {
+  return new Promise((resolve, reject) => {
+    const callbackName = '__gvizCallback_' + Date.now();
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error('انتهت مهلة الاتصال — تأكد من الاتصال بالإنترنت'));
+    }, 12000);
+
+    function cleanup() {
+      clearTimeout(timeout);
+      delete window[callbackName];
+      const el = document.getElementById('__gvizScript');
+      if (el) el.remove();
+    }
+
+    window[callbackName] = function(data) {
+      cleanup();
+      try {
+        const rows = data?.table?.rows || [];
+        const cols = data?.table?.cols || [];
+
+        totalRows = rows.length;
+
+        // Detect name & score columns by label
+        let nameColIdx  = -1;
+        let scoreColIdx = -1;
+
+        cols.forEach((col, i) => {
+          const lbl = (col.label || '').toLowerCase();
+          if (nameColIdx  === -1 && (lbl.includes('اسم') || lbl.includes('name')))   nameColIdx  = i;
+          if (scoreColIdx === -1 && (lbl.includes('نتيجة') || lbl.includes('درجة') ||
+              lbl.includes('score') || lbl.includes('نقطة') || lbl.includes('العلامة') ||
+              lbl.includes('النتيجة') || lbl.includes('result'))) scoreColIdx = i;
+        });
+
+        // Fallback: col 1 = name, last col = score
+        if (nameColIdx  === -1) nameColIdx  = 1;
+        if (scoreColIdx === -1) scoreColIdx = cols.length - 1;
+
+        const eligible = [];
+
+        rows.forEach((row, rowIdx) => {
+          const cells    = row.c || [];
+          const nameCell  = cells[nameColIdx];
+          const scoreCell = cells[scoreColIdx];
+
+          const name     = nameCell  ? String(nameCell.v  || nameCell.f  || '').trim() : '';
+          // Prefer formatted value (f) for "X / Y" format, fall back to raw (v)
+          const scoreRaw = scoreCell
+            ? (scoreCell.f !== null && scoreCell.f !== undefined ? scoreCell.f : scoreCell.v)
+            : null;
+
+          const score = parseScore(scoreRaw);
+
+          if (name && score !== null && score === 50) {
+            eligible.push({ id: rowIdx + 2, name }); // +2: 1-indexed + header row
+          }
+        });
+
+        resolve({ eligible, totalRows });
+      } catch (err) {
+        reject(err);
+      }
+    };
+
+    // GViz JSONP correct param: responseHandler (NOT handler/callback)
+    const script = document.createElement('script');
+    script.id  = '__gvizScript';
+    script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:${callbackName}`;
+    script.onerror = () => {
+      cleanup();
+      reject(new Error('تعذّر تحميل البيانات — تأكد أن الجدول مشارك للعموم (Anyone with the link)'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+// Alias used by init()
+const fetchData = fetchDataJSONP;
+
+// ─── Update Stats UI ──────────────────────────────────────────────────────────
+function updateStats() {
+  statTotal.textContent     = totalRows || '—';
+  statEligible.textContent  = allParticipants.length || '—';
+  statWinners.textContent   = winners.length;
+  statRemaining.textContent = availablePool.length;
+}
+
+// ─── Update Winners List UI ───────────────────────────────────────────────────
+function renderWinnersList() {
+  if (winners.length === 0) {
+    winnersList.innerHTML = `<div style="text-align:center; color:rgba(240,253,244,0.3); font-size:0.8rem; padding:2rem 0;">لا يوجد فائزون بعد</div>`;
+    return;
+  }
+
+  winnersList.innerHTML = winners.map((w, idx) => {
+    const rank = idx + 1;
+    let badgeClass = 'rank-n';
+    if (rank === 1) badgeClass = 'rank-1';
+    else if (rank === 2) badgeClass = 'rank-2';
+    else if (rank === 3) badgeClass = 'rank-3';
+    const isNew = idx === 0 ? 'winner-card-new' : '';
+    return `
+      <div class="${isNew}" style="display:flex; align-items:center; gap:0.6rem; padding:0.5rem 0.5rem; border-bottom:1px solid rgba(212,175,55,0.08); margin-bottom:0.2rem;">
+        <span class="rank-badge ${badgeClass}">${rank}</span>
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:700; font-size:0.85rem; color:#f0fdf4; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${w.name}</div>
+          <div style="font-size:0.65rem; color:rgba(212,175,55,0.6);">#${w.id}</div>
+        </div>
+        <div style="font-size:1rem;">${rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '🏅'}</div>
+      </div>`;
+  }).join('');
+}
+
+// ─── Update Ticker ─────────────────────────────────────────────────────────────
+function updateTicker() {
+  if (winners.length === 0) return;
+  const items = winners.map((w, i) => `🏆 الفائز #${i + 1}: ${w.name} (رقم ${w.id})`).join(' &nbsp;&nbsp;&nbsp;⭐&nbsp;&nbsp;&nbsp; ');
+  const full = items + ' &nbsp;&nbsp;&nbsp;⭐&nbsp;&nbsp;&nbsp; ' + items;
+  tickerContent.innerHTML = `<span style="color:#d4af37; font-size:0.82rem; font-weight:600;">${full}</span>`;
+}
+
+// ─── Confetti ─────────────────────────────────────────────────────────────────
+function fireConfetti() {
+  const count = isMobileView() ? 60 : 180;
+  const defaults = { spread: 60, ticks: 80, gravity: 1, startVelocity: 35, shapes: ['star', 'circle'] };
+
+  // Left corner
+  confetti({ ...defaults, particleCount: count / 2, origin: { x: 0.05, y: 1 }, colors: ['#d4af37','#fde047','#064e3b','#fff'] });
+  // Right corner
+  setTimeout(() => {
+    confetti({ ...defaults, particleCount: count / 2, origin: { x: 0.95, y: 1 }, colors: ['#d4af37','#fde047','#064e3b','#fff'] });
+  }, 150);
+}
+
+// ─── Draw Animation ───────────────────────────────────────────────────────────
+function startDraw() {
+  if (isDrawing) return;
+  if (availablePool.length === 0) {
+    statusMsg.textContent = 'لا يوجد مشاركون متاحون للسحب';
+    return;
+  }
+
+  isDrawing = true;
+  setButtonState('drawing');
+  statusMsg.textContent = '';
+
+  // ✅ FAIRNESS: Select winner BEFORE animation starts
+  const winnerIdx = Math.floor(Math.random() * availablePool.length);
+  const winner    = availablePool[winnerIdx];
+
+  // Remove from pool immediately
+  availablePool.splice(winnerIdx, 1);
+
+  // ── Animation ──
+  const ANIM_DURATION = 3200; // ms
+  const INTERVAL_MS   = 80;
+  let elapsed = 0;
+
+  nameDisplay.classList.add('blurred');
+  nameDisplay.classList.remove('winner');
+  idBadge.style.display = 'none';
+
+  const names = allParticipants.map(p => p.name);
+  if (names.length === 0) names.push('...');
+
+  try {
+    animationInterval = setInterval(() => {
+      try {
+        elapsed += INTERVAL_MS;
+        const rand = names[Math.floor(Math.random() * names.length)];
+        nameDisplay.textContent = rand;
+
+        if (elapsed >= ANIM_DURATION) {
+          clearInterval(animationInterval);
+          animationInterval = null;
+          revealWinner(winner);
+        }
+      } catch (innerErr) {
+        clearInterval(animationInterval);
+        animationInterval = null;
+        revealWinner(winner);
+      }
+    }, INTERVAL_MS);
+  } catch (err) {
+    revealWinner(winner);
+  }
+}
+
+function revealWinner(winner) {
+  // Show winner
+  nameDisplay.textContent = winner.name;
+  nameDisplay.classList.remove('blurred');
+  nameDisplay.classList.add('winner');
+
+  idNumber.textContent      = winner.id;
+  idBadge.style.display     = 'inline-flex';
+
+  // Add to top of winners list
+  winners.unshift(winner);
+
+  // Update UI
+  updateStats();
+  renderWinnersList();
+  updateTicker();
+  fireConfetti();
+
+  setButtonState('done');
+  isDrawing = false;
+
+  if (availablePool.length === 0) {
+    statusMsg.textContent = '🎊 تم السحب على جميع المشاركين المؤهلين!';
+    drawBtn.disabled = true;
+    btnLabel.textContent = 'انتهى السحب';
+  } else {
+    statusMsg.textContent = `تهانينا! 🎉 متبقٍ ${availablePool.length} مشارك`;
+  }
+}
+
+// ─── TV Remote / Keyboard ─────────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.keyCode === 13) {
+    if (!drawBtn.disabled && !isDrawing) {
+      drawBtn.click();
+    }
+  }
+});
+
+drawBtn.addEventListener('click', startDraw);
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+async function init() {
+  try {
+    const { eligible } = await fetchDataJSONP();
+    allParticipants = eligible;
+    availablePool   = [...eligible]; // copy
+
+    updateStats();
+    renderWinnersList();
+
+    if (eligible.length === 0) {
+      showError('لم يتم العثور على مشاركين مؤهلين (درجة كاملة 50/50). تأكد من بيانات الجدول.');
+      drawBtn.disabled = true;
+      statusMsg.textContent = 'لا يوجد مشاركون مؤهلون';
+    } else {
+      statusMsg.textContent = `✅ تم تحميل ${eligible.length} مشارك مؤهل`;
+      setButtonState('idle');
+    }
+
+  } catch (err) {
+    showError(`فشل تحميل البيانات: ${err.message || err}`);
+    statTotal.textContent    = 'خطأ';
+    statEligible.textContent = 'خطأ';
+    drawBtn.disabled = true;
+    statusMsg.textContent = 'فشل الاتصال بقاعدة البيانات';
+  } finally {
+    // Hide loading overlay
+    loadingOverlay.classList.add('hidden-overlay');
+    setTimeout(() => { loadingOverlay.style.display = 'none'; }, 600);
+    // Render all icons ONCE after page is ready
+    if (window.lucide) lucide.createIcons();
+  }
+}
+
+// Start
+init();
+</script>
+</body>
+</html>

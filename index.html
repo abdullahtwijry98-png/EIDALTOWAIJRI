@@ -3,43 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Digital Clock</title>
+    <title>Android TV Optimized Design</title>
     <style>
         body {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #282c34;
-            color: white;
+            font-size: 24px;
             font-family: Arial, sans-serif;
-            font-size: 48px;
+            color: white;
+            background-color: #000;
+            padding: 20px;
+        }
+        .timezone {
+            margin: 20px 0;
         }
         .clock {
-            margin: 20px;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-    <div class="clock" id="utc"></div>
-    <div class="clock" id="est"></div>
-    <div class="clock" id="gmt"></div>
-    <div class="clock" id="ist"></div>
-    <div class="clock" id="jst"></div>
-    <div class="clock" id="pst"></div>
-    <div class="clock" id="aest"></div>
+    <h1>Welcome to the Android TV Application</h1>
+    <div class="timezones">
+        <div class="timezone">UTC: <span class="clock" id="utc-time"></span></div>
+        <div class="timezone">EST: <span class="clock" id="est-time"></span></div>
+        <div class="timezone">PST: <span class="clock" id="pst-time"></span></div>
+        <div class="timezone">GMT: <span class="clock" id="gmt-time"></span></div>
+        <div class="timezone">IST: <span class="clock" id="ist-time"></span></div>
+        <div class="timezone">JST: <span class="clock" id="jst-time"></span></div>
+        <div class="timezone">AEST: <span class="clock" id="aest-time"></span></div>
+    </div>
     <script>
         function updateClocks() {
-            const now = new Date();
-            document.getElementById('utc').innerText = 'UTC: ' + now.toUTCString();
-            document.getElementById('est').innerText = 'EST: ' + new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' })).toLocaleString();
-            document.getElementById('gmt').innerText = 'GMT: ' + now.toGMTString();
-            document.getElementById('ist').innerText = 'IST: ' + new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })).toLocaleString();
-            document.getElementById('jst').innerText = 'JST: ' + new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Tokyo' })).toLocaleString();
-            document.getElementById('pst').innerText = 'PST: ' + new Date(now.toLocaleString('en-US', { timeZone: 'America/Los_Angeles' })).toLocaleString();
-            document.getElementById('aest').innerText = 'AEST: ' + new Date(now.toLocaleString('en-US', { timeZone: 'Australia/Sydney' })).toLocaleString();
+            const options = {timeZone: 'UTC', hour: '2-digit', minute: '2-digit', second: '2-digit'};
+            const utcTime = new Date().toLocaleString('en-US', options);
+            document.getElementById('utc-time').textContent = utcTime;
+            options.timeZone = 'America/New_York';
+            const estTime = new Date().toLocaleString('en-US', options);
+            document.getElementById('est-time').textContent = estTime;
+            options.timeZone = 'America/Los_Angeles';
+            const pstTime = new Date().toLocaleString('en-US', options);
+            document.getElementById('pst-time').textContent = pstTime;
+            options.timeZone = 'Europe/London';
+            const gmtTime = new Date().toLocaleString('en-US', options);
+            document.getElementById('gmt-time').textContent = gmtTime;
+            options.timeZone = 'Asia/Kolkata';
+            const istTime = new Date().toLocaleString('en-US', options);
+            document.getElementById('ist-time').textContent = istTime;
+            options.timeZone = 'Asia/Tokyo';
+            const jstTime = new Date().toLocaleString('en-US', options);
+            document.getElementById('jst-time').textContent = jstTime;
+            options.timeZone = 'Australia/Sydney';
+            const aestTime = new Date().toLocaleString('en-US', options);
+            document.getElementById('aest-time').textContent = aestTime;
         }
+        // Update clocks every second
         setInterval(updateClocks, 1000);
         updateClocks();
     </script>
